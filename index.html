@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personality Test</title>
+  <style>
+    :root {
+      --bg: #f6efe4;
+      --surface: rgba(255, 250, 242, 0.9);
+      --surface-strong: #fffaf2;
+      --text: #24170f;
+      --muted: #6c584c;
+      --accent: #d86f45;
+      --accent-deep: #a94728;
+      --accent-soft: #f4b183;
+      --line: rgba(54, 34, 22, 0.12);
+      --shadow: 0 24px 60px rgba(68, 40, 24, 0.16);
+      --radius: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255, 208, 166, 0.8), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(216, 111, 69, 0.2), transparent 30%),
+        linear-gradient(135deg, #f3e6d3, #f7f2ea 44%, #efe2d2);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: min(760px, 100%);
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(120deg, rgba(255, 255, 255, 0.25), transparent 42%),
+        radial-gradient(circle at top right, rgba(244, 177, 131, 0.2), transparent 18%);
+      pointer-events: none;
+    }
+
+    .inner {
+      position: relative;
+      padding: 32px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-size: 0.76rem;
+      color: var(--accent-deep);
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 0.95;
+      font-weight: 700;
+    }
+
+    .subcopy {
+      margin: 14px 0 0;
+      max-width: 54ch;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 1rem;
+    }
+
+    .hero,
+    .quiz,
+    .result {
+      animation: rise 420ms ease;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    button {
+      appearance: none;
+      border: none;
+      border-radius: 999px;
+      padding: 14px 22px;
+      font: inherit;
+      cursor: pointer;
+      transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+      color: #fff8f2;
+      box-shadow: 0 14px 30px rgba(169, 71, 40, 0.28);
+    }
+
+    .secondary {
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .quiz-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .progress-label {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .progress-bar {
+      height: 12px;
+      background: rgba(71, 43, 29, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 26px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent-soft), var(--accent));
+      transition: width 260ms ease;
+    }
+
+    .question {
+      font-size: clamp(1.5rem, 3vw, 2.25rem);
+      line-height: 1.15;
+      margin: 0 0 22px;
+    }
+
+    .answers {
+      display: grid;
+      gap: 14px;
+    }
+
+    .answer {
+      width: 100%;
+      text-align: left;
+      padding: 18px 18px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.66);
+      border: 1px solid rgba(85, 54, 36, 0.12);
+      color: var(--text);
+      box-shadow: 0 8px 24px rgba(93, 63, 45, 0.08);
+    }
+
+    .answer:hover,
+    .answer.selected {
+      background: linear-gradient(135deg, #fffaf3, #ffe5d3);
+      border-color: rgba(169, 71, 40, 0.35);
+      box-shadow: 0 14px 28px rgba(169, 71, 40, 0.14);
+    }
+
+    .result-panel {
+      padding: 24px;
+      border-radius: 22px;
+      background:
+        radial-gradient(circle at top left, rgba(244, 177, 131, 0.32), transparent 38%),
+        linear-gradient(135deg, rgba(255, 253, 248, 0.96), rgba(248, 236, 223, 0.94));
+      border: 1px solid rgba(85, 54, 36, 0.1);
+    }
+
+    .result-title {
+      margin: 10px 0 8px;
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+    }
+
+    .result-trait {
+      margin: 0;
+      color: var(--accent-deep);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .result-copy {
+      color: var(--muted);
+      line-height: 1.7;
+      margin: 16px 0 0;
+    }
+
+    .score-breakdown {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .score-pill {
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(85, 54, 36, 0.1);
+      border-radius: 18px;
+      padding: 12px 14px;
+    }
+
+    .score-pill strong {
+      display: block;
+      font-size: 1.1rem;
+    }
+
+    .score-pill span {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .inner {
+        padding: 22px;
+      }
+
+      .quiz-top {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .score-breakdown {
+        grid-template-columns: 1fr;
+      }
+
+      .button-row {
+        flex-direction: column;
+      }
+
+      .button-row button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="inner">
+      <section class="hero" id="hero">
+        <p class="eyebrow">Single File Personality Quiz</p>
+        <h1>What kind of energy do you bring into a room?</h1>
+        <p class="subcopy">
+          Answer a few quick questions and this page will sort you into a playful personality type based on how you recharge,
+          create, and react under pressure.
+        </p>
+        <div class="button-row">
+          <button class="primary" id="startButton">Start the Test</button>
+        </div>
+      </section>
+
+      <section class="quiz hidden" id="quiz">
+        <div class="quiz-top">
+          <p class="eyebrow" id="questionCounter">Question 1 of 6</p>
+          <p class="progress-label" id="progressLabel">0% complete</p>
+        </div>
+        <div class="progress-bar" aria-hidden="true">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <h2 class="question" id="questionText"></h2>
+        <div class="answers" id="answers"></div>
+        <div class="button-row">
+          <button class="secondary" id="backButton" type="button">Previous</button>
+        </div>
+      </section>
+
+      <section class="result hidden" id="result">
+        <p class="eyebrow">Your Result</p>
+        <div class="result-panel">
+          <p class="result-trait" id="resultTrait"></p>
+          <h2 class="result-title" id="resultTitle"></h2>
+          <p class="result-copy" id="resultCopy"></p>
+          <div class="score-breakdown" id="scoreBreakdown"></div>
+        </div>
+        <p class="footer-note">This is a playful personality snapshot, not a scientific assessment.</p>
+        <div class="button-row">
+          <button class="primary" id="restartButton">Take It Again</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const questions = [
+      {
+        prompt: "A free evening opens up unexpectedly. What feels most tempting?",
+        options: [
+          { text: "Call a few people and make spontaneous plans.", scores: { spark: 2 } },
+          { text: "Start a side project or idea I have been circling.", scores: { insight: 2 } },
+          { text: "Stay in, recharge, and create a peaceful little ritual.", scores: { calm: 2 } }
+        ]
+      },
+      {
+        prompt: "When a group project gets messy, you usually become the one who...",
+        options: [
+          { text: "Lifts the mood and keeps everyone moving.", scores: { spark: 2 } },
+          { text: "Spots patterns and quietly builds a smarter plan.", scores: { insight: 2 } },
+          { text: "Steadies emotions and helps people feel heard.", scores: { calm: 2 } }
+        ]
+      },
+      {
+        prompt: "Which compliment sticks with you the longest?",
+        options: [
+          { text: "\"You make everything more exciting.\"", scores: { spark: 2 } },
+          { text: "\"You think about things in a unique way.\"", scores: { insight: 2 } },
+          { text: "\"I always feel better after talking to you.\"", scores: { calm: 2 } }
+        ]
+      },
+      {
+        prompt: "Your ideal workspace feels...",
+        options: [
+          { text: "Alive, collaborative, and full of momentum.", scores: { spark: 2 } },
+          { text: "Curated, interesting, and mentally stimulating.", scores: { insight: 2 } },
+          { text: "Cozy, quiet, and deeply comfortable.", scores: { calm: 2 } }
+        ]
+      },
+      {
+        prompt: "When trying something new, your first instinct is to...",
+        options: [
+          { text: "Jump in and figure it out while doing.", scores: { spark: 2 } },
+          { text: "Research it and understand the mechanics first.", scores: { insight: 2 } },
+          { text: "Ease in gently and find a rhythm that feels right.", scores: { calm: 2 } }
+        ]
+      },
+      {
+        prompt: "What kind of memory do you treasure most?",
+        options: [
+          { text: "A loud, unforgettable moment with people I love.", scores: { spark: 2 } },
+          { text: "A conversation or discovery that changed how I think.", scores: { insight: 2 } },
+          { text: "A simple, warm moment that made life feel soft.", scores: { calm: 2 } }
+        ]
+      }
+    ];
+
+    const results = {
+      spark: {
+        trait: "Bold Social Energy",
+        title: "The Spark",
+        copy: "You bring movement, warmth, and contagious momentum. You tend to energize spaces quickly, trust instinct, and create memorable experiences through action. People often look to you when a room needs life."
+      },
+      insight: {
+        trait: "Curious Creative Depth",
+        title: "The Insight",
+        copy: "You are reflective, imaginative, and driven by meaning. You enjoy finding connections that others miss, and your strength comes from thoughtful observation paired with original ideas. Your presence feels sharp and intriguing."
+      },
+      calm: {
+        trait: "Grounded Gentle Presence",
+        title: "The Calm",
+        copy: "You offer steadiness, comfort, and emotional clarity. You tend to read the room well, create safe spaces naturally, and value authenticity over noise. Your strength is in making people feel settled and understood."
+      }
+    };
+
+    const hero = document.getElementById("hero");
+    const quiz = document.getElementById("quiz");
+    const result = document.getElementById("result");
+    const startButton = document.getElementById("startButton");
+    const backButton = document.getElementById("backButton");
+    const restartButton = document.getElementById("restartButton");
+    const questionCounter = document.getElementById("questionCounter");
+    const progressLabel = document.getElementById("progressLabel");
+    const progressFill = document.getElementById("progressFill");
+    const questionText = document.getElementById("questionText");
+    const answers = document.getElementById("answers");
+    const resultTrait = document.getElementById("resultTrait");
+    const resultTitle = document.getElementById("resultTitle");
+    const resultCopy = document.getElementById("resultCopy");
+    const scoreBreakdown = document.getElementById("scoreBreakdown");
+
+    let currentQuestion = 0;
+    let selections = new Array(questions.length).fill(null);
+
+    function startQuiz() {
+      hero.classList.add("hidden");
+      result.classList.add("hidden");
+      quiz.classList.remove("hidden");
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const question = questions[currentQuestion];
+      const selectedIndex = selections[currentQuestion];
+      const progressPercent = Math.round((currentQuestion / questions.length) * 100);
+
+      questionCounter.textContent = `Question ${currentQuestion + 1} of ${questions.length}`;
+      progressLabel.textContent = `${progressPercent}% complete`;
+      progressFill.style.width = `${progressPercent}%`;
+      questionText.textContent = question.prompt;
+      answers.innerHTML = "";
+
+      question.options.forEach((option, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "answer";
+        if (selectedIndex === index) {
+          button.classList.add("selected");
+        }
+        button.textContent = option.text;
+        button.addEventListener("click", () => chooseAnswer(index));
+        answers.appendChild(button);
+      });
+
+      backButton.disabled = currentQuestion === 0;
+      backButton.style.opacity = currentQuestion === 0 ? "0.5" : "1";
+      backButton.style.cursor = currentQuestion === 0 ? "not-allowed" : "pointer";
+    }
+
+    function chooseAnswer(index) {
+      selections[currentQuestion] = index;
+
+      if (currentQuestion < questions.length - 1) {
+        currentQuestion += 1;
+        renderQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    function calculateScores() {
+      const totals = { spark: 0, insight: 0, calm: 0 };
+
+      selections.forEach((selectedIndex, questionIndex) => {
+        const option = questions[questionIndex].options[selectedIndex];
+        Object.entries(option.scores).forEach(([trait, value]) => {
+          totals[trait] += value;
+        });
+      });
+
+      return totals;
+    }
+
+    function showResult() {
+      const totals = calculateScores();
+      const winner = Object.entries(totals).sort((a, b) => b[1] - a[1])[0][0];
+      const finalResult = results[winner];
+
+      quiz.classList.add("hidden");
+      result.classList.remove("hidden");
+
+      resultTrait.textContent = finalResult.trait;
+      resultTitle.textContent = finalResult.title;
+      resultCopy.textContent = finalResult.copy;
+
+      scoreBreakdown.innerHTML = "";
+      Object.entries(totals).forEach(([trait, score]) => {
+        const pill = document.createElement("div");
+        pill.className = "score-pill";
+        const label = results[trait].title.replace("The ", "");
+        pill.innerHTML = `<strong>${score}</strong><span>${label}</span>`;
+        scoreBreakdown.appendChild(pill);
+      });
+    }
+
+    function goBack() {
+      if (currentQuestion === 0) {
+        return;
+      }
+      currentQuestion -= 1;
+      renderQuestion();
+    }
+
+    function restartQuiz() {
+      currentQuestion = 0;
+      selections = new Array(questions.length).fill(null);
+      result.classList.add("hidden");
+      hero.classList.remove("hidden");
+    }
+
+    startButton.addEventListener("click", startQuiz);
+    backButton.addEventListener("click", goBack);
+    restartButton.addEventListener("click", restartQuiz);
+  </script>
+</body>
+</html>
